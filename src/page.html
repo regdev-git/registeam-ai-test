@@ -1,0 +1,1567 @@
+<meta charset="utf-8">
+<title>RegisTeam — AI Landing Page</title>
+<meta name="description" content="AI-лендинги, що продають: цифрова агенція RegisTeam створює landing page на стику швидкості штучного інтелекту та дизайну ручної роботи.">
+<style>
+/*FONTS*/
+  :root{
+    --bg:#0A0A08;
+    --bg-soft:#131311;
+    --bg-soft-2:#1A1917;
+    --ink:#F5F4EE;
+    --ink-dim:rgba(245,244,238,.62);
+    --ink-faint:rgba(245,244,238,.36);
+    --ink-grey:#6E6C66;
+    --accent:#FF2A1E;
+    --accent-ink:#170302;
+    --line:rgba(245,244,238,.14);
+    --line-strong:rgba(245,244,238,.3);
+
+    --font-display:"Unbounded","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --font-body:"Inter Tight",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+    --font-mono:"Inter Tight",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+
+    --rail-w:112px;
+    --topbar-h:84px;
+    --space-1:.5rem;
+    --space-2:1rem;
+    --space-3:1.75rem;
+    --space-4:2.75rem;
+    --space-5:4.5rem;
+    --space-6:7rem;
+    --ease:cubic-bezier(.16,.84,.44,1);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  ul,ol{margin:0;padding:0;list-style:none;}
+  h1,h2,h3,p{margin:0;}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+  ::selection{background:var(--accent);color:var(--accent-ink);}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+  }
+
+  .grain{
+    position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .progress-bar{position:fixed;top:0;left:0;height:2px;background:var(--accent);width:0%;z-index:70;transition:width .1s linear;}
+
+  /* ---------- preloader ---------- */
+  .preloader{
+    position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1.6rem;transition:opacity .6s var(--ease),visibility .6s;
+  }
+  .preloader-diamond{width:28px;height:28px;border:1px solid var(--ink);transform:rotate(45deg);animation:spin 1.8s linear infinite;position:relative;}
+  .preloader-diamond::after{content:"";position:absolute;inset:8px;border:1px solid var(--accent);}
+  @keyframes spin{to{transform:rotate(405deg);}}
+  .preloader-count{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.18em;color:var(--ink-faint);font-variant-numeric:tabular-nums;}
+  .preloader.done{opacity:0;visibility:hidden;}
+  body.preloading{overflow:hidden;}
+
+  /* ---------- cursor ---------- */
+  .cursor{
+    position:fixed;top:0;left:0;width:22px;height:22px;border:1px solid var(--accent);
+    transform:translate(-50%,-50%) rotate(45deg);pointer-events:none;z-index:80;mix-blend-mode:difference;
+    display:flex;align-items:center;justify-content:center;
+    transition:width .25s var(--ease),height .25s var(--ease),border-color .25s var(--ease),background .25s var(--ease);
+  }
+  .cursor-label{position:absolute;transform:rotate(-45deg);font-family:var(--font-mono);font-size:.58rem;letter-spacing:.1em;white-space:nowrap;opacity:0;color:var(--ink);text-transform:uppercase;transition:opacity .2s;}
+  .cursor.big{width:104px;height:104px;background:var(--bg);border-color:var(--ink-dim);}
+  .cursor.big .cursor-label{opacity:1;}
+  @media (pointer:coarse), (prefers-reduced-motion: reduce){.cursor{display:none;}}
+
+  /* ---------- rail / topbar ---------- */
+  .rail{
+    position:fixed;top:0;left:0;bottom:0;width:var(--rail-w);z-index:50;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .rail ol{display:flex;flex-direction:column;gap:1.9rem;align-items:center;}
+  .rail a{display:flex;flex-direction:column;align-items:center;gap:.35rem;font-family:var(--font-mono);}
+  .rail .num{font-size:.72rem;color:var(--ink-faint);letter-spacing:.08em;transition:color .3s;}
+  .rail .label{writing-mode:vertical-rl;text-orientation:mixed;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);opacity:0;max-height:0;transition:opacity .3s,color .3s;}
+  .rail li.active .num{color:var(--accent);}
+  .rail li.active .label{color:var(--ink);opacity:1;max-height:80px;}
+  .rail li{position:relative;}
+  .rail li::before{content:"";position:absolute;left:50%;top:-1.15rem;width:4px;height:4px;background:var(--line-strong);transform:translateX(-50%) rotate(45deg);}
+  .rail li:first-child::before{display:none;}
+  @media (max-width:980px){.rail{display:none;}}
+
+  .topbar{
+    position:fixed;top:0;left:var(--rail-w);right:0;height:var(--topbar-h);z-index:45;
+    display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.25rem,3vw,3rem);
+    border-bottom:1px solid var(--line);background:color-mix(in srgb, var(--bg) 85%, transparent);backdrop-filter:blur(10px);
+  }
+  @media (max-width:980px){.topbar{left:0;}}
+  .logo{font-family:var(--font-display);font-weight:700;font-size:1.1rem;letter-spacing:-.01em;display:flex;align-items:center;gap:.4rem;text-transform:uppercase;}
+  .logo i{width:8px;height:8px;border:1px solid var(--accent);transform:rotate(45deg);display:inline-block;}
+  .topbar-actions{display:flex;align-items:center;gap:1.75rem;}
+  .lang-badge{font-family:var(--font-mono);font-size:.64rem;font-weight:600;letter-spacing:.14em;color:var(--ink-dim);border:1px solid var(--line-strong);border-radius:999px;padding:.4rem .8rem;}
+  .topbar-email{font-family:var(--font-mono);font-size:.76rem;color:var(--ink-dim);border-bottom:1px solid transparent;transition:border-color .25s,color .25s;}
+  .topbar-email:hover{color:var(--ink);border-color:var(--accent);}
+  @media (max-width:900px){.topbar-email{display:none;}}
+  @media (max-width:640px){.lang-badge{display:none;}}
+
+  .menu-toggle{display:none;width:38px;height:28px;position:relative;z-index:90;}
+  .menu-toggle span,.menu-toggle span::before,.menu-toggle span::after{content:"";position:absolute;left:0;right:0;height:1px;background:var(--ink);transition:transform .3s var(--ease),opacity .3s;}
+  .menu-toggle span{top:50%;}
+  .menu-toggle span::before{top:-9px;}
+  .menu-toggle span::after{top:9px;}
+  .menu-toggle[aria-expanded="true"] span{background:transparent;}
+  .menu-toggle[aria-expanded="true"] span::before{transform:translateY(9px) rotate(45deg);}
+  .menu-toggle[aria-expanded="true"] span::after{transform:translateY(-9px) rotate(-45deg);}
+  @media (max-width:980px){.menu-toggle{display:block;}}
+
+  .mobile-nav{position:fixed;inset:0;background:var(--bg);z-index:85;display:flex;flex-direction:column;justify-content:center;gap:1.1rem;padding:2rem clamp(1.5rem,8vw,4rem);transform:translateY(-100%);transition:transform .5s var(--ease);}
+  .mobile-nav.open{transform:translateY(0);}
+  .mobile-nav a{font-family:var(--font-display);font-size:clamp(1.8rem,8vw,3rem);font-weight:700;text-transform:uppercase;display:flex;gap:1rem;align-items:baseline;color:var(--ink);}
+  .mobile-nav a .num{font-family:var(--font-mono);font-size:.9rem;color:var(--accent);}
+
+  main{margin-left:var(--rail-w);}
+  @media (max-width:980px){main{margin-left:0;}}
+  .section{padding:var(--space-6) clamp(1.25rem,4vw,3.5rem);border-bottom:1px solid var(--line);position:relative;}
+  .section::before{content:"+";position:absolute;top:1.1rem;right:1.25rem;font-family:var(--font-mono);color:var(--line-strong);font-size:.85rem;}
+  .eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:1.1rem;}
+  h2.headline{font-family:var(--font-display);font-weight:700;font-size:clamp(1.5rem,3.1vw,2.5rem);letter-spacing:-.025em;line-height:1.22;text-transform:uppercase;text-wrap:balance;max-width:17ch;overflow:hidden;}
+  h2.headline .mask{display:block;transform:translateY(105%);transition:transform .8s var(--ease);}
+  h2.headline.visible .mask{transform:translateY(0);}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease),transform .8s var(--ease);}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  .reveal-stagger.visible > *{transition-delay:calc(var(--i,0) * 90ms);}
+
+  /* ---------- hero ---------- */
+  .hero{min-height:calc(100vh - var(--topbar-h));padding-top:calc(var(--topbar-h) + var(--space-6) + var(--space-4));display:flex;flex-direction:column;justify-content:center;gap:var(--space-4);position:relative;}
+  .hero-canvas{
+    position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;
+    -webkit-mask-image:linear-gradient(to right, rgba(0,0,0,.20) 0%, rgba(0,0,0,.28) 32%, rgba(0,0,0,.72) 60%, #000 84%);
+    mask-image:linear-gradient(to right, rgba(0,0,0,.20) 0%, rgba(0,0,0,.28) 32%, rgba(0,0,0,.72) 60%, #000 84%);
+  }
+  .hero-content,.hero-scroll-cue{position:relative;z-index:1;}
+  .hero-geo{z-index:1;}
+  @media (max-width:980px){
+    .hero-canvas{
+      -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,.22) 0%, rgba(0,0,0,.5) 60%, #000 100%);
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.22) 0%, rgba(0,0,0,.5) 60%, #000 100%);
+    }
+  }
+  .hero-content{max-width:1200px;}
+  /* Unbounded's caps span ~1.13em of ink, so a tighter line-height gets
+     sliced by the reveal mask's overflow:hidden */
+  .hero-heading{font-family:var(--font-display);font-weight:700;letter-spacing:-.03em;line-height:1.22;text-transform:uppercase;font-size:clamp(1.5rem,4vw,3.4rem);min-height:2.6em;}
+  .hero-heading .line{display:block;position:relative;overflow:hidden;}
+  .hero-heading .line span{display:block;transform:translateY(105%);transition:transform .7s var(--ease);}
+  .hero-heading.play .line span{transform:translateY(0);}
+  .hero-heading .line-b span{transition-delay:.08s;color:var(--ink-grey);}
+  .hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4);margin-top:var(--space-3);}
+  .hero-sub{max-width:34ch;font-size:1.02rem;line-height:1.55;color:var(--ink-dim);}
+  .hero-geo{position:absolute;right:clamp(1.25rem,4vw,3.5rem);bottom:var(--space-3);font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;color:var(--ink-faint);text-align:right;}
+
+  .btn{
+    font-family:var(--font-mono);font-size:.76rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    padding:1rem 1.7rem;border-radius:12px;display:inline-flex;align-items:center;gap:.6rem;white-space:nowrap;
+    transition:background .3s,color .3s,box-shadow .3s,border-color .3s;
+  }
+  /* neon lift on the accent buttons: a tight ring plus two wider halos */
+  .btn-primary{
+    background:var(--accent);color:var(--accent-ink);
+    box-shadow:0 0 0 1px rgba(255,42,30,.55), 0 0 20px rgba(255,42,30,.42), 0 10px 34px -8px rgba(255,42,30,.6);
+  }
+  .btn-primary:hover{
+    box-shadow:0 0 0 1px rgba(255,42,30,.8), 0 0 30px rgba(255,42,30,.65), 0 14px 42px -8px rgba(255,42,30,.75);
+  }
+  .btn-ghost{border:1px solid var(--line-strong);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  .hero-scroll-cue{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:.5rem;}
+  .hero-scroll-cue span{display:inline-block;animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+  /* ---------- showreel burst ---------- */
+  .burst{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;position:relative;padding:var(--space-5) clamp(1.25rem,4vw,3.5rem);
+  }
+  .burst::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:
+      linear-gradient(90deg,transparent calc(34% - 1px),var(--line) 34%,transparent calc(34% + 1px)),
+      linear-gradient(90deg,transparent calc(66% - 1px),var(--line) 66%,transparent calc(66% + 1px));
+  }
+  .burst-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+  .burst-inner{
+    position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
+    gap:1.5rem;text-align:center;max-width:640px;
+  }
+  .burst-inner h2{
+    font-family:var(--font-display);font-weight:700;text-transform:uppercase;
+    font-size:clamp(1.25rem,2.5vw,2rem);letter-spacing:-.025em;line-height:1.14;text-wrap:balance;
+  }
+  .burst-inner p{color:var(--ink-dim);line-height:1.55;max-width:44ch;}
+  .play-tri{
+    width:128px;height:112px;background:var(--ink);
+    clip-path:polygon(50% 0,100% 100%,0 100%);
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:24px;
+    transition:transform .45s var(--ease);
+  }
+  .play-tri i{
+    width:0;height:0;display:block;
+    border-left:13px solid var(--bg);border-top:9px solid transparent;border-bottom:9px solid transparent;
+  }
+  .play-tri:hover,.play-tri:focus-visible{transform:scale(1.07);}
+  .burst-link{
+    font-family:var(--font-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-faint);border-bottom:1px solid transparent;padding-bottom:.2rem;transition:color .3s,border-color .3s;
+  }
+  .burst-link:hover{color:var(--accent);border-color:var(--accent);}
+  @media (max-width:640px){
+    .burst::after{display:none;}
+    .play-tri{width:96px;height:84px;padding-bottom:18px;}
+  }
+
+  /* ---------- marquee ---------- */
+  .marquee-strip{border-bottom:1px solid var(--line);overflow:hidden;padding:1.3rem 0;background:var(--bg-soft);}
+  .marquee-track{display:flex;width:max-content;animation:scroll-left 30s linear infinite;}
+  .marquee-track span{font-family:var(--font-display);font-weight:700;font-size:1.25rem;letter-spacing:-.01em;text-transform:uppercase;padding:0 1.75rem;white-space:nowrap;color:var(--ink-faint);display:flex;align-items:center;gap:1.75rem;}
+  .marquee-track span::after{content:"";width:7px;height:7px;background:var(--accent);transform:rotate(45deg);flex:none;}
+  @keyframes scroll-left{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .marquee-strip.reverse .marquee-track{animation-direction:reverse;animation-duration:38s;}
+  .marquee-strip.small .marquee-track span{font-family:var(--font-mono);font-weight:400;font-size:.76rem;letter-spacing:.14em;}
+
+  /* ---------- service / dotted surface ---------- */
+  .service-section{position:relative;overflow:hidden;}
+  .dots-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+  .service-section > *:not(.dots-canvas){position:relative;z-index:1;}
+
+  .value-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:var(--space-5);}
+  /* Liquid glass: the dot field is blurred and slightly saturated behind the
+     panel rather than blocked, so it still reads as depth while the copy sits
+     on an even ground. The inset highlight along the top edge and the darker
+     inset line at the foot give the sheet its thickness. */
+  .value-card{
+    position:relative;
+    display:flex;flex-direction:column;gap:1rem;align-items:flex-start;
+    padding:1.8rem 1.5rem;border-radius:20px;
+    border:1px solid rgba(245,244,238,.12);
+    background:linear-gradient(152deg,
+      rgba(245,244,238,.062) 0%,
+      rgba(245,244,238,.018) 42%,
+      rgba(245,244,238,.034) 100%);
+    /* A blur spreads a dot's energy over R², so peak brightness falls as
+       (r/R)². At 8px a 1.1px dot kept 2 levels out of 255 — invisible no
+       matter how thin the tint. 4.5px keeps the field readable through the
+       glass while still softening it. */
+    -webkit-backdrop-filter:blur(4.5px) saturate(130%);
+    backdrop-filter:blur(4.5px) saturate(130%);
+    box-shadow:
+      inset 0 1px 0 rgba(245,244,238,.16),
+      inset 0 -1px 0 rgba(0,0,0,.4),
+      0 20px 44px -26px rgba(0,0,0,.95);
+    transition:transform .45s var(--ease),border-color .45s,background .45s,box-shadow .45s;
+  }
+  /* specular sheen across the upper corner */
+  .value-card::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+    background:linear-gradient(158deg, rgba(245,244,238,.09) 0%, rgba(245,244,238,.014) 34%, transparent 58%);
+  }
+  .value-card > *{position:relative;z-index:1;}
+  .value-card:hover{
+    transform:translateY(-5px);border-color:rgba(255,42,30,.45);
+    background:linear-gradient(152deg,
+      rgba(245,244,238,.10) 0%,
+      rgba(245,244,238,.035) 42%,
+      rgba(255,42,30,.045) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(245,244,238,.2),
+      inset 0 -1px 0 rgba(0,0,0,.4),
+      0 26px 52px -26px rgba(0,0,0,.95),
+      0 0 34px -12px rgba(255,42,30,.35);
+  }
+  .value-mark{
+    width:46px;height:46px;border-radius:14px;flex:none;
+    background:var(--accent);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 26px rgba(255,42,30,.5);
+  }
+  .value-mark svg{width:20px;height:20px;}
+  .value-card h3{font-family:var(--font-display);font-weight:600;font-size:1.05rem;letter-spacing:-.01em;text-transform:uppercase;line-height:1.2;}
+  .value-card p{color:var(--ink-dim);line-height:1.55;font-size:.94rem;}
+  @media (max-width:820px){
+    .value-grid{grid-template-columns:1fr;}
+    .value-card:hover{transform:none;}
+  }
+
+  .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-3);margin-top:var(--space-5);border-top:1px solid var(--line);padding-top:var(--space-4);}
+  .stat-num{
+    display:flex;align-items:baseline;gap:.02em;
+    font-family:var(--font-display);font-weight:700;font-size:clamp(2.1rem,3.5vw,2.95rem);
+    letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;
+  }
+  .stat-num i{font-style:normal;font-size:.62em;color:var(--accent);}
+  /* the labels sit over the moving dot field, so they need real weight and
+     contrast — at 36% ink they fell under the 4.5:1 floor for text this small */
+  .stat-label{
+    display:block;margin-top:.5rem;
+    font-family:var(--font-mono);font-size:.76rem;font-weight:500;letter-spacing:.05em;
+    line-height:1.35;color:var(--ink-dim);text-transform:none;
+  }
+  @media (max-width:820px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+
+  /* ---------- process ---------- */
+  .timeline{margin-top:var(--space-5);border-top:1px solid var(--line);}
+  .tl-step{display:grid;grid-template-columns:110px 1fr;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--line);align-items:start;}
+  .tl-step .tn{
+    font-family:var(--font-mono);font-size:1.15rem;font-weight:600;
+    color:var(--ink-faint);display:block;transform-origin:left center;
+    transition:color .5s var(--ease), text-shadow .5s var(--ease), transform .5s var(--ease);
+  }
+  /* three stages: dim while below the fold, warm once revealed, full neon
+     while the step sits in the reading band */
+  .tl-step.visible .tn{color:rgba(255,42,30,.62);}
+  .tl-step.active .tn{
+    color:var(--accent);transform:scale(1.12);
+    text-shadow:0 0 8px rgba(255,42,30,.85), 0 0 22px rgba(255,42,30,.5), 0 0 46px rgba(255,42,30,.28);
+  }
+  .tl-step h3{font-family:var(--font-display);font-weight:600;font-size:clamp(1.05rem,1.8vw,1.45rem);letter-spacing:-.01em;margin-bottom:.6rem;text-transform:uppercase;}
+  .tl-step p{color:var(--ink-dim);max-width:60ch;line-height:1.6;}
+  @media (max-width:640px){.tl-step{grid-template-columns:1fr;gap:.6rem;}}
+
+  /* ---------- quote ---------- */
+  .quote-section{background:var(--bg-soft);position:relative;overflow:hidden;}
+  .quote-mark{
+    position:absolute;top:50%;right:clamp(2rem,9vw,8rem);
+    width:clamp(96px,13vw,190px);height:clamp(96px,13vw,190px);
+    transform:translateY(-50%);color:var(--accent);pointer-events:none;z-index:0;
+    filter:
+      drop-shadow(0 0 5px rgba(255,42,30,.95))
+      drop-shadow(0 0 16px rgba(255,42,30,.6))
+      drop-shadow(0 0 38px rgba(255,42,30,.32));
+  }
+  .quote-mark svg{width:100%;height:100%;display:block;will-change:transform;}
+  .quote-section blockquote,.quote-section cite{position:relative;z-index:1;}
+  @media (max-width:820px){
+    .quote-mark{top:auto;bottom:var(--space-4);right:var(--space-3);transform:none;opacity:.75;}
+  }
+  .quote-section blockquote{font-family:var(--font-display);font-weight:700;font-size:clamp(1.5rem,3.5vw,2.7rem);letter-spacing:-.03em;line-height:1.14;max-width:20ch;text-wrap:balance;text-transform:uppercase;}
+  .quote-section blockquote span{color:var(--accent);}
+  .quote-section cite{display:block;margin-top:1.5rem;font-family:var(--font-mono);font-style:normal;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);}
+
+  /* ---------- work ---------- */
+  .case-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-3);margin-top:var(--space-4);}
+  .case-card{
+    border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;background:var(--bg-soft);
+    transition:border-color .45s,transform .45s var(--ease);
+  }
+  .case-card:hover{border-color:var(--line-strong);transform:translateY(-4px);}
+  /* the art box carries the screenshot's own 3:2 ratio, so nothing is cropped */
+  .case-art{aspect-ratio:3 / 2;position:relative;overflow:hidden;background:var(--bg-soft-2);display:flex;align-items:center;justify-content:center;}
+  .case-art::before{content:attr(data-n);position:absolute;top:14px;left:16px;z-index:3;font-family:var(--font-mono);font-size:.68rem;color:var(--ink-faint);letter-spacing:.1em;}
+  /* a real screenshot replaces the placeholder diamond on cases that have one */
+  .case-shot{
+    position:absolute;inset:0;z-index:0;
+    background-repeat:no-repeat;background-size:contain;background-position:center;
+    /* pulled back a little so the shot sits inside a frame rather than
+       running edge to edge; hover eases it forward */
+    transform:scale(.87);
+    transition:transform .7s var(--ease);
+  }
+  .case-card:hover .case-shot{transform:scale(.93);}
+  /* just enough veil at the top for the CASE label; the shot stays readable */
+  .case-art.has-shot::after{
+    content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(180deg, rgba(10,10,8,.55) 0%, rgba(10,10,8,0) 22%);
+  }
+  .case-diamond{width:64px;height:64px;border:1px solid var(--line-strong);transform:rotate(45deg);transition:transform .6s var(--ease),border-color .4s;position:relative;}
+  .case-diamond::after{content:"";position:absolute;inset:14px;border:1px solid var(--accent);opacity:0;transition:opacity .4s;}
+  .case-card:hover .case-diamond{transform:rotate(135deg) scale(1.12);border-color:var(--ink-dim);}
+  .case-card:hover .case-diamond::after{opacity:1;}
+  /* the diamond stays on top of the screenshot — brighter, and with a shadow
+     so it holds against the light parts of the shot */
+  .case-art.has-shot .case-diamond{
+    z-index:2;border-color:rgba(245,244,238,.8);
+    filter:drop-shadow(0 2px 12px rgba(10,10,8,.9)) drop-shadow(0 0 3px rgba(10,10,8,.8));
+  }
+  .case-card:hover .case-art.has-shot .case-diamond{border-color:var(--ink);}
+  #shotFinFlow{background-image:url("/*SHOT_FINFLOW*/");}
+  #shotLumio{background-image:url("/*SHOT_LUMIO*/");}
+  #shotAtlas{background-image:url("/*SHOT_ATLAS*/");}
+  #shotGreenNest{background-image:url("/*SHOT_GREENNEST*/");}
+  .case-body{padding:1.3rem 1.4rem 1.5rem;display:flex;justify-content:space-between;gap:1rem;align-items:flex-end;border-top:1px solid var(--line);}
+  .case-body h3{font-family:var(--font-display);font-weight:600;font-size:1rem;text-transform:uppercase;}
+  .case-body .tag{font-family:var(--font-mono);font-size:.66rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;display:block;margin-top:.35rem;}
+  .case-body .result{font-family:var(--font-mono);font-size:.85rem;color:var(--accent);text-align:right;white-space:nowrap;}
+  @media (max-width:760px){.case-grid{grid-template-columns:1fr;}}
+
+  /* ---------- pricing ---------- */
+  .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:var(--space-5);align-items:stretch;}
+  .price-card{
+    position:relative;display:flex;flex-direction:column;gap:1.15rem;
+    padding:1.9rem 1.5rem 1.5rem;border:1px solid var(--line);border-radius:20px;
+    background:linear-gradient(180deg,var(--bg-soft) 0%,var(--bg) 60%);
+    transition:transform .45s var(--ease),border-color .45s;
+  }
+  .price-card:hover{transform:translateY(-5px);border-color:var(--line-strong);}
+  .price-card.featured{
+    border-color:var(--accent);
+    background:linear-gradient(180deg,rgba(255,42,30,.12) 0%,var(--bg) 52%);
+    box-shadow:0 26px 60px -28px rgba(255,42,30,.55);
+    transform:translateY(-14px);
+  }
+  .price-card.featured:hover{transform:translateY(-19px);}
+  .price-badge{
+    position:absolute;top:1.15rem;right:1.15rem;background:var(--accent);color:var(--accent-ink);
+    font-family:var(--font-mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;
+    padding:.35rem .65rem;border-radius:999px;
+  }
+  .price-mark{
+    width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line-strong);background:var(--bg-soft-2);color:var(--ink-dim);flex:none;
+  }
+  .price-mark svg{width:19px;height:19px;}
+  .price-card.featured .price-mark{
+    border-color:transparent;background:var(--accent);color:var(--accent-ink);
+    box-shadow:0 0 26px rgba(255,42,30,.6);
+  }
+  .price-card h3{font-family:var(--font-display);font-weight:700;font-size:1.15rem;text-transform:uppercase;letter-spacing:-.01em;}
+  .price-desc{color:var(--ink-dim);font-size:.88rem;line-height:1.5;min-height:2.7em;}
+  .price-card .price{
+    display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;
+    font-family:var(--font-display);font-weight:700;font-size:clamp(1.45rem,2.3vw,1.95rem);
+    color:var(--ink);letter-spacing:-.02em;
+  }
+  .price-card .price em{
+    font-style:normal;font-family:var(--font-body);font-size:.85rem;font-weight:400;
+    color:var(--ink-faint);letter-spacing:0;
+  }
+  .price-incl{font-size:.85rem;color:var(--ink);padding-bottom:.75rem;border-bottom:1px solid var(--line);}
+  .price-card ul{display:flex;flex-direction:column;gap:.75rem;flex:1;}
+  .price-card li{display:flex;gap:.65rem;align-items:flex-start;font-size:.89rem;color:var(--ink-dim);line-height:1.45;}
+  .tick{
+    flex:none;width:18px;height:18px;margin-top:.12rem;border-radius:50%;
+    border:1px solid rgba(255,42,30,.45);display:flex;align-items:center;justify-content:center;color:var(--accent);
+  }
+  .tick svg{width:9px;height:9px;}
+  .price-cta{
+    margin-top:.35rem;display:flex;align-items:center;justify-content:center;
+    padding:.95rem 1rem;border-radius:12px;border:1px solid var(--line-strong);
+    font-family:var(--font-mono);font-size:.71rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    transition:background .3s,color .3s,border-color .3s,box-shadow .3s;
+  }
+  .price-cta:hover{border-color:var(--accent);color:var(--accent);}
+  .price-card.featured .price-cta{
+    background:var(--accent);border-color:var(--accent);color:var(--accent-ink);
+    box-shadow:0 0 0 1px rgba(255,42,30,.55), 0 0 20px rgba(255,42,30,.42), 0 10px 34px -8px rgba(255,42,30,.6);
+  }
+  .price-card.featured .price-cta:hover{
+    background:transparent;color:var(--accent);
+    box-shadow:0 0 24px rgba(255,42,30,.4);
+  }
+  @media (max-width:900px){
+    .pricing-grid{grid-template-columns:1fr;}
+    .price-card.featured,.price-card.featured:hover{transform:none;}
+    .price-card:hover{transform:none;}
+    .price-desc{min-height:0;}
+  }
+
+  /* ---------- faq ---------- */
+  .faq-list{margin-top:var(--space-4);border-top:1px solid var(--line);max-width:900px;}
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.4rem 0;text-align:left;}
+  .faq-q h3{font-family:var(--font-display);font-weight:600;font-size:.95rem;text-transform:uppercase;}
+  .faq-q .plus{font-family:var(--font-mono);font-size:1.3rem;color:var(--accent);transition:transform .35s var(--ease);flex:none;}
+  .faq-item.open .plus{transform:rotate(45deg);}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .4s var(--ease);}
+  .faq-a p{color:var(--ink-dim);padding-bottom:1.4rem;max-width:65ch;line-height:1.6;}
+
+  /* ---------- contact ---------- */
+  .contact-section{background:var(--bg-soft);}
+  .contact-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:var(--space-5);margin-top:var(--space-4);}
+  .contact-grid h2{max-width:14ch;}
+  .contact-copy p{color:var(--ink-dim);margin-top:1.2rem;max-width:36ch;line-height:1.6;}
+  .contact-direct{margin-top:var(--space-4);display:flex;flex-direction:column;gap:.5rem;}
+  .contact-direct a{font-family:var(--font-mono);font-size:.95rem;border-bottom:1px solid var(--line-strong);width:fit-content;padding-bottom:.15rem;}
+  .contact-direct a:hover{border-color:var(--accent);color:var(--accent);}
+  @media (max-width:820px){.contact-grid{grid-template-columns:1fr;gap:var(--space-4);}}
+
+  form.brief{display:flex;flex-direction:column;gap:1.3rem;}
+  .field{position:relative;border-bottom:1px solid var(--line-strong);padding-bottom:.6rem;}
+  .field label{display:block;font-family:var(--font-mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.5rem;}
+  .field input,.field textarea,.field select{width:100%;background:none;border:none;color:var(--ink);font-family:var(--font-body);font-size:1.05rem;resize:none;padding:0;}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;}
+  .field:focus-within{border-color:var(--accent);}
+  .field textarea{min-height:64px;}
+  /* the budget figures carry the same display face as the pricing block, so
+     the two places where money appears read as one voice */
+  .field select{
+    font-family:var(--font-display);font-weight:700;font-size:1.15rem;
+    letter-spacing:-.02em;font-variant-numeric:tabular-nums;cursor:pointer;
+  }
+  .field select option{background:var(--bg-soft);color:var(--ink);font-weight:500;}
+  .form-note{font-family:var(--font-mono);font-size:.66rem;color:var(--ink-faint);letter-spacing:.03em;}
+  .brief-success{display:none;border:1px solid var(--accent);padding:1.6rem;font-family:var(--font-mono);font-size:.9rem;line-height:1.6;color:var(--ink);}
+  .brief-success.show{display:block;}
+  form.brief.hidden{display:none;}
+
+  /* ---------- footer ---------- */
+  .footer{padding:var(--space-5) clamp(1.25rem,4vw,3.5rem) var(--space-3);margin-left:var(--rail-w);}
+  @media (max-width:980px){.footer{margin-left:0;}}
+  .footer-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-4);padding-bottom:var(--space-4);border-bottom:1px solid var(--line);}
+  .footer-brand .logo{font-size:1.4rem;}
+  .footer-brand p{color:var(--ink-dim);max-width:30ch;margin-top:1rem;line-height:1.55;}
+  .footer-cols{display:flex;gap:var(--space-5);}
+  .footer-col h4{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:1rem;}
+  .footer-col a,.footer-col span{display:block;margin-bottom:.6rem;color:var(--ink-dim);font-size:.92rem;}
+  .footer-col a:hover{color:var(--accent);}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;padding-top:var(--space-3);font-family:var(--font-mono);font-size:.68rem;color:var(--ink-faint);letter-spacing:.04em;}
+  .to-top{border:1px solid var(--line-strong);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;transition:border-color .3s,transform .3s,box-shadow .3s;}
+  .to-top:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-3px);box-shadow:0 0 18px rgba(255,42,30,.32);}
+
+  .container-note{max-width:820px;color:var(--ink-dim);margin-top:1.1rem;line-height:1.6;font-size:1rem;}
+</style>
+
+<div class="preloader" id="preloader">
+  <div class="preloader-diamond"></div>
+  <div class="preloader-count"><span id="preloadPct">0</span>%</div>
+</div>
+
+<div class="grain"></div>
+<div class="progress-bar" id="progressBar"></div>
+<div class="cursor" id="cursor"><span class="cursor-label"></span></div>
+
+<header class="topbar">
+  <a class="logo" href="#hero"><i></i>RegisTeam</a>
+  <div class="topbar-actions">
+    <span class="lang-badge">AI LANDING PAGE</span>
+    <a class="topbar-email" href="mailto:reg.developers@gmail.com">reg.developers@gmail.com</a>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Меню" aria-expanded="false"><span></span></button>
+</header>
+
+<nav class="rail" aria-label="Розділи сторінки">
+  <ol id="railList">
+    <li class="active"><a href="#hero"><span class="num">00</span><span class="label">Головна</span></a></li>
+    <li><a href="#service"><span class="num">01</span><span class="label">Послуга</span></a></li>
+    <li><a href="#process"><span class="num">02</span><span class="label">Процес</span></a></li>
+    <li><a href="#work"><span class="num">03</span><span class="label">Кейси</span></a></li>
+    <li><a href="#pricing"><span class="num">04</span><span class="label">Тарифи</span></a></li>
+    <li><a href="#contact"><span class="num">05</span><span class="label">Контакти</span></a></li>
+  </ol>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="#hero"><span class="num">00</span>Головна</a>
+  <a href="#service"><span class="num">01</span>Послуга</a>
+  <a href="#process"><span class="num">02</span>Процес</a>
+  <a href="#work"><span class="num">03</span>Кейси</a>
+  <a href="#pricing"><span class="num">04</span>Тарифи</a>
+  <a href="#contact"><span class="num">05</span>Контакти</a>
+</div>
+
+<main>
+
+  <section id="hero" class="section hero" style="border-bottom:none;">
+    <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <p class="eyebrow">Цифрова агенція RegisTeam</p>
+      <h1 class="hero-heading" id="heroHeading">
+        <span class="line line-a"><span>Створюємо AI-лендинги,</span></span>
+        <span class="line line-b"><span>що продають з першого дня</span></span>
+      </h1>
+      <div class="hero-meta">
+        <p class="hero-sub">Бриф → AI-чернетка за 48 годин → дизайн-полірування → запуск за 5 днів. Одна команда, дві швидкості: машини та людей.</p>
+        <a href="#contact" class="btn btn-primary" data-cursor-label="Бриф">Обговорити проєкт</a>
+        <a href="#work" class="btn btn-ghost" data-cursor-label="Кейси">Дивитись кейси</a>
+      </div>
+    </div>
+    <div class="hero-scroll-cue">Скрольте<span>↓</span></div>
+    <div class="hero-geo">КИЇВ, УКРАЇНА<br>50.45° N · 30.52° E</div>
+  </section>
+
+  <section id="burst" class="section burst" style="border-bottom:none;">
+    <canvas class="burst-canvas" id="burstCanvas" aria-hidden="true"></canvas>
+    <div class="burst-inner">
+      <p class="eyebrow" style="margin-bottom:0;">AI × Дизайн</p>
+      <h2>AI генерує сотні варіантів — ми лишаємо ефективний</h2>
+      <a class="play-tri" href="#work" aria-label="Перейти до кейсів"><i></i></a>
+      <p>Щоб знайти справді ефективний варіант, наші спеціалісти проходять цілий пул ітерацій генерації кожного блоку.</p>
+      <a class="burst-link" href="#work">Дивитись кейси</a>
+    </div>
+  </section>
+
+  <div class="marquee-strip">
+    <div class="marquee-track">
+      <span>AI LANDING PAGE</span><span>ШВИДКО</span><span>КОНВЕРСІЯ</span><span>БЕЗ ВОДИ</span><span>ЗАПУСК ЗА 5 ДНІВ</span><span>REGISTEAM</span>
+      <span>AI LANDING PAGE</span><span>ШВИДКО</span><span>КОНВЕРСІЯ</span><span>БЕЗ ВОДИ</span><span>ЗАПУСК ЗА 5 ДНІВ</span><span>REGISTEAM</span>
+    </div>
+  </div>
+
+  <section id="service" class="section service-section">
+    <canvas class="dots-canvas" id="dotsCanvas" aria-hidden="true"></canvas>
+    <p class="eyebrow reveal">01 · Послуга</p>
+    <h2 class="headline reveal"><span class="mask">Що ви отримуєте, коли AI і люди працюють разом</span></h2>
+    <p class="container-note reveal">AI бере на себе чернетку: структуру блоків, варіанти текстів, перший візуальний напрям — за годину, а не за тиждень брифінгів. Команда RegisTeam бере на себе все, що робить лендинг вашим: характер бренду, точні деталі, довіру.</p>
+
+    <div class="value-grid reveal-stagger">
+      <div class="value-card reveal" style="--i:0">
+        <span class="value-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5 21.5 12 12 21.5 2.5 12 12 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+        <h3>Рівень великого бренду</h3>
+        <p>AI формує структуру на основі даних вашої ніші та конкурентів, дизайнер додає індивідуальність, яку не згенерувати промптом.</p>
+      </div>
+      <div class="value-card reveal" style="--i:1">
+        <span class="value-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.5 2 4 13.5h6L9.5 22 20 10.5h-6.5L13.5 2Z" fill="currentColor"/></svg></span>
+        <h3>Швидкість без втрати якості</h3>
+        <p>Перший клікабельний прототип — за 48 годин. Фінальний, готовий до трафіку лендинг — за 5 робочих днів.</p>
+      </div>
+      <div class="value-card reveal" style="--i:2">
+        <span class="value-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16.5 9.5 11l4 4L20 7.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 7.5H20v5.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h3>Конверсія, а не просто картинка</h3>
+        <p>Структура блоків, тексти й заклики до дії будуються на перевірених конверсійних патернах, а не на здогадках дизайнера.</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat reveal"><span class="stat-num"><b data-count="5">0</b></span><span class="stat-label">днів до запуску</span></div>
+      <div class="stat reveal"><span class="stat-num"><b data-count="48">0</b></span><span class="stat-label">годин на перший драфт</span></div>
+      <div class="stat reveal"><span class="stat-num"><b data-count="40">0</b></span><span class="stat-label">лендингів з AI</span></div>
+      <div class="stat reveal"><span class="stat-num"><b data-count="98">0</b><i>%</i></span><span class="stat-label">клієнтів повертаються</span></div>
+      <div class="stat reveal"><span class="stat-num"><b data-count="24">0</b><i>/7</i></span><span class="stat-label">працює AI-система</span></div>
+    </div>
+  </section>
+
+  <section id="process" class="section process-section">
+    <p class="eyebrow reveal">02 · Процес</p>
+    <h2 class="headline reveal"><span class="mask">Як народжується AI Landing Page</span></h2>
+
+    <div class="timeline">
+      <div class="tl-step reveal"><span class="tn">01</span><div><h3>Бриф і матеріали</h3><p>15-хвилинна розмова або форма: ваша ніша, аудиторія, приклади лендингів, які вам подобаються, і те, чого точно бути не повинно.</p></div></div>
+      <div class="tl-step reveal"><span class="tn">02</span><div><h3>AI-генерація</h3><p>За години AI будує структуру сторінки, варіанти заголовків і текстів під вашу нішу та перший візуальний драфт — вже з вашим кольором і тоном голосу.</p></div></div>
+      <div class="tl-step reveal"><span class="tn">03</span><div><h3>Дизайн-полірування</h3><p>Арт-директор RegisTeam доводить композицію, типографіку, анімації та мікровзаємодії до рівня, який AI сам по собі не видає.</p></div></div>
+      <div class="tl-step reveal"><span class="tn">04</span><div><h3>Запуск і оптимізація</h3><p>Публікуємо сторінку, підключаємо аналітику та підключаємо A/B-варіанти заголовків, поки конверсія не почне вас радувати.</p></div></div>
+    </div>
+  </section>
+
+  <section class="section quote-section">
+    <div class="quote-mark" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="none">
+        <polygon points="50,10 90,84 10,84" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>
+        <polygon points="50,34 71,73 29,73" stroke="currentColor" stroke-width="2" stroke-linejoin="round" opacity=".55"/>
+      </svg>
+    </div>
+    <blockquote class="reveal">AI генерує <span>чернетку.</span> Люди вирішують, <span>що продає.</span></blockquote>
+    <cite class="reveal">— команда RegisTeam</cite>
+  </section>
+
+  <section id="work" class="section work-section">
+    <p class="eyebrow reveal">03 · Кейси</p>
+    <h2 class="headline reveal"><span class="mask">Лендинги, які вже працюють на бізнес</span></h2>
+
+    <div class="case-grid reveal-stagger">
+      <div class="case-card reveal" style="--i:0" data-cursor-label="Кейс">
+        <div class="case-art has-shot" data-n="CASE 01"><div class="case-shot" id="shotFinFlow"></div><div class="case-diamond"></div></div>
+        <div class="case-body"><div><h3>FinFlow</h3><span class="tag">Fintech · MVP-лендинг</span></div><span class="result">+180% лідів</span></div>
+      </div>
+      <div class="case-card reveal" style="--i:1" data-cursor-label="Кейс">
+        <div class="case-art has-shot" data-n="CASE 02"><div class="case-shot" id="shotLumio"></div><div class="case-diamond"></div></div>
+        <div class="case-body"><div><h3>Lumio Dental</h3><span class="tag">Health-tech · онлайн-запис</span></div><span class="result">+65% дзвінків</span></div>
+      </div>
+      <div class="case-card reveal" style="--i:2" data-cursor-label="Кейс">
+        <div class="case-art has-shot" data-n="CASE 03"><div class="case-shot" id="shotAtlas"></div><div class="case-diamond"></div></div>
+        <div class="case-body"><div><h3>Atlas Legal</h3><span class="tag">B2B · репозиціонування</span></div><span class="result">3 дні на запуск</span></div>
+      </div>
+      <div class="case-card reveal" style="--i:3" data-cursor-label="Кейс">
+        <div class="case-art has-shot" data-n="CASE 04"><div class="case-shot" id="shotGreenNest"></div><div class="case-diamond"></div></div>
+        <div class="case-body"><div><h3>GreenNest</h3><span class="tag">E-commerce · кошик</span></div><span class="result">2.1× конверсія</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee-strip small reverse">
+    <div class="marquee-track">
+      <span>SAAS</span><span>E-COMMERCE</span><span>FINTECH</span><span>HEALTH-TECH</span><span>EDTECH</span><span>НЕРУХОМІСТЬ</span><span>BEAUTY &amp; WELLNESS</span><span>B2B SERVICES</span>
+      <span>SAAS</span><span>E-COMMERCE</span><span>FINTECH</span><span>HEALTH-TECH</span><span>EDTECH</span><span>НЕРУХОМІСТЬ</span><span>BEAUTY &amp; WELLNESS</span><span>B2B SERVICES</span>
+    </div>
+  </div>
+
+  <section id="pricing" class="section pricing-section">
+    <p class="eyebrow reveal">04 · Тарифи</p>
+    <h2 class="headline reveal"><span class="mask">Прозорі пакети без прихованих правок</span></h2>
+
+    <div class="pricing-grid reveal-stagger">
+      <div class="price-card reveal" style="--i:0">
+        <span class="price-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5 21.5 12 12 21.5 2.5 12 12 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        <h3>Старт</h3>
+        <p class="price-desc">Для тих, хто перевіряє нішу й хоче швидко вийти на трафік.</p>
+        <div class="price">15 000 ₴<em>разово</em></div>
+        <p class="price-incl">Що входить</p>
+        <ul>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Базова AI-генерація структури й текстів</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Адаптивна верстка під усі екрани</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Запуск за 5 робочих днів</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>1 раунд правок</li>
+        </ul>
+        <a class="price-cta" href="#contact" data-plan="Старт" data-budget="До 20 000 ₴">Обрати пакет</a>
+      </div>
+
+      <div class="price-card featured reveal" style="--i:1">
+        <span class="price-badge">Популярне</span>
+        <span class="price-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5 21.5 12 12 21.5 2.5 12 12 2.5Z" fill="currentColor"/></svg></span>
+        <h3>Бізнес</h3>
+        <p class="price-desc">Для брендів, яким потрібен характер і виміряна конверсія.</p>
+        <div class="price">28 000 ₴<em>разово</em></div>
+        <p class="price-incl">Усе з пакета «Старт», а також</p>
+        <ul>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Мультиваріантна AI-генерація текстів</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Кастомні анімації та мікровзаємодії</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Інтеграція аналітики та CRM</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>2 раунди правок</li>
+        </ul>
+        <a class="price-cta" href="#contact" data-plan="Бізнес" data-budget="20 000 – 35 000 ₴">Обрати пакет</a>
+      </div>
+
+      <div class="price-card reveal" style="--i:2">
+        <span class="price-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 1.5 17 6.5 12 11.5 7 6.5 12 1.5Z" fill="currentColor"/><path d="M6 12.5 11 17.5 6 22.5 1 17.5 6 12.5Z" fill="currentColor" opacity=".5"/><path d="M18 12.5 23 17.5 18 22.5 13 17.5 18 12.5Z" fill="currentColor" opacity=".5"/></svg></span>
+        <h3>Система</h3>
+        <p class="price-desc">Для команд, що женуть трафік з кількох джерел одночасно.</p>
+        <div class="price">За запитом<em>від 45 000 ₴</em></div>
+        <p class="price-incl">Усе з пакета «Бізнес», а також</p>
+        <ul>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Кілька AI-версій для A/B-тестів</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Персоналізація під джерело трафіку</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Підтримка й оптимізація 30 днів</li>
+          <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.4 4.6 9 10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Виділений арт-директор</li>
+        </ul>
+        <a class="price-cta" href="#contact" data-plan="Система" data-budget="Понад 35 000 ₴">Обрати пакет</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq-section">
+    <p class="eyebrow reveal">FAQ</p>
+    <h2 class="headline reveal"><span class="mask">Питання, які нам ставлять найчастіше</span></h2>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q"><h3>Що таке AI Landing Page від RegisTeam?</h3><span class="plus">+</span></button>
+        <div class="faq-a"><p>Гібридний процес: AI генерує чернетку структури, текстів і візуального напряму на основі даних вашої ніші, а команда RegisTeam доводить її до фінального продукту вручну — типографіка, анімації, деталі бренду.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><h3>Наскільки швидко це реально?</h3><span class="plus">+</span></button>
+        <div class="faq-a"><p>Перший клікабельний драфт — за 48 годин після брифу. Готовий до запуску лендинг — за 5 робочих днів залежно від складності та кількості раундів правок.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><h3>Це виглядатиме як «типовий AI-сайт»?</h3><span class="plus">+</span></button>
+        <div class="faq-a"><p>Ні. Кожен AI-драфт проходить дизайн-полірування арт-директором: унікальна типографіка, кастомні анімації та композиція під ваш бренд, а не шаблон.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><h3>Хто редагуватиме контент після запуску?</h3><span class="plus">+</span></button>
+        <div class="faq-a"><p>Сторінку збираємо в зручному конструкторі, тож ви можете редагувати тексти й зображення самостійно — або лишити це на нас за окремою підтримкою.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><h3>Що входить у ціну?</h3><span class="plus">+</span></button>
+        <div class="faq-a"><p>Дизайн, розробка, базова AI-генерація копірайтингу, адаптивна верстка, підключення домену й аналітики. Детальний склад — у комерційній пропозиції під ваш проєкт.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section contact-section" style="border-bottom:none;">
+    <div class="contact-grid">
+      <div class="contact-copy">
+        <p class="eyebrow reveal">05 · Контакти</p>
+        <h2 class="headline reveal"><span class="mask">Розкажіть про ваш проєкт</span></h2>
+        <p class="reveal">Заповніть коротку форму — і ми надішлемо орієнтовний план та строки протягом 48 годин. Або просто напишіть напряму.</p>
+        <div class="contact-direct reveal">
+          <a href="mailto:reg.developers@gmail.com">reg.developers@gmail.com</a>
+        </div>
+      </div>
+
+      <div>
+        <form class="brief reveal" id="briefForm">
+          <div class="field"><label for="f-name">Ім'я</label><input id="f-name" name="name" type="text" required></div>
+          <div class="field"><label for="f-contact">Email або телефон</label><input id="f-contact" name="contact" type="text" required></div>
+          <div class="field"><label for="f-project">Коротко про проєкт</label><textarea id="f-project" name="project" required></textarea></div>
+          <div class="field">
+            <label for="f-budget">Орієнтовний бюджет</label>
+            <select id="f-budget" name="budget">
+              <option>До 20 000 ₴</option>
+              <option>20 000 – 35 000 ₴</option>
+              <option>Понад 35 000 ₴</option>
+              <option>Ще не визначились</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Надіслати бриф</button>
+          <p class="form-note">Кнопка відкриє ваш поштовий клієнт із заповненим листом на reg.developers@gmail.com</p>
+        </form>
+        <div class="brief-success" id="briefSuccess">Дякуємо! Лист сформовано у вашій поштовій програмі — просто натисніть «Надіслати». Ми відповімо протягом 48 годин.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="logo" href="#hero"><i></i>RegisTeam</a>
+      <p>Цифрова агенція, що поєднує швидкість AI із дизайном ручної роботи.</p>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Меню</h4>
+        <a href="#service">Послуга</a>
+        <a href="#process">Процес</a>
+        <a href="#work">Кейси</a>
+        <a href="#pricing">Тарифи</a>
+      </div>
+      <div class="footer-col">
+        <h4>Контакти</h4>
+        <a href="mailto:reg.developers@gmail.com">reg.developers@gmail.com</a>
+        <span>Instagram</span>
+        <span>Behance</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 RegisTeam. Усі права захищені.</span>
+    <a href="#hero" class="to-top" aria-label="Нагору">↑</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var coarse = window.matchMedia('(pointer: coarse)').matches;
+
+  var css = getComputedStyle(document.documentElement);
+  function hexToRgb(h){
+    var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);
+    return m ? [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)] : [245,244,238];
+  }
+  var INK = hexToRgb(css.getPropertyValue('--ink').trim());
+  var ACCENT = hexToRgb(css.getPropertyValue('--accent').trim());
+  var INK_S = INK.join(','), ACCENT_S = ACCENT.join(',');
+
+  /* preloader */
+  var body = document.body;
+  body.classList.add('preloading');
+  var preloader = document.getElementById('preloader');
+  var pctEl = document.getElementById('preloadPct');
+  var pct = 0;
+  function tick(){
+    pct += reduced ? 100 : Math.max(1, Math.round(Math.random()*9));
+    if(pct >= 100){
+      pct = 100; pctEl.textContent = pct;
+      preloader.classList.add('done');
+      body.classList.remove('preloading');
+      setTimeout(function(){ document.getElementById('heroHeading').classList.add('play'); }, 150);
+      return;
+    }
+    pctEl.textContent = pct;
+    setTimeout(tick, reduced ? 0 : 45 + Math.random()*60);
+  }
+  setTimeout(tick, 200);
+
+  /* progress bar */
+  var bar = document.getElementById('progressBar');
+  function onScroll(){
+    var h = document.documentElement;
+    var p = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = p + '%';
+  }
+  document.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* custom cursor */
+  if(!coarse && !reduced){
+    var cursor = document.getElementById('cursor');
+    var label = cursor.querySelector('.cursor-label');
+    var cx=0, cy=0, tx=0, ty=0;
+    window.addEventListener('mousemove', function(e){ tx = e.clientX; ty = e.clientY; }, {passive:true});
+    (function raf(){
+      cx += (tx-cx)*0.18; cy += (ty-cy)*0.18;
+      cursor.style.left = cx + 'px'; cursor.style.top = cy + 'px';
+      requestAnimationFrame(raf);
+    })();
+    document.querySelectorAll('a, button, .case-card').forEach(function(el){
+      el.addEventListener('mouseenter', function(){
+        cursor.classList.add('big');
+        label.textContent = el.getAttribute('data-cursor-label') || 'ВІДКРИТИ';
+      });
+      el.addEventListener('mouseleave', function(){ cursor.classList.remove('big'); });
+    });
+  }
+
+  /* Buttons no longer chase the cursor at all. Even clamped to a few pixels
+     the drift read as unstable against the moving lattice behind it — the
+     hover state is carried by the glow instead, which never shifts the
+     click target. */
+
+  /* mobile nav */
+  var toggle = document.getElementById('menuToggle');
+  var mobileNav = document.getElementById('mobileNav');
+  toggle.addEventListener('click', function(){
+    var open = mobileNav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open);
+  });
+  mobileNav.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){ mobileNav.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); });
+  });
+
+  /* rail active state */
+  var railItems = document.querySelectorAll('#railList li');
+  var sections = ['hero','service','process','work','pricing','contact'].map(function(id){ return document.getElementById(id); });
+  var railObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        var idx = sections.indexOf(entry.target);
+        railItems.forEach(function(li,i){ li.classList.toggle('active', i===idx); });
+      }
+    });
+  }, {rootMargin:'-45% 0px -45% 0px'});
+  sections.forEach(function(s){ if(s) railObserver.observe(s); });
+
+  /* reveal on scroll */
+  var revealObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, {threshold:.2});
+  document.querySelectorAll('.reveal, .reveal-stagger, h2.headline').forEach(function(el){ revealObserver.observe(el); });
+
+  var steps = document.querySelectorAll('.tl-step');
+  /* warm the number as soon as the step is properly on screen … */
+  var stepReveal = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold:.5});
+  /* … and light it fully only while it occupies the reading band, so the
+     numbers ignite one after another as the block scrolls past */
+  var stepActive = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ e.target.classList.toggle('active', e.isIntersecting); });
+  }, {rootMargin:'-38% 0px -38% 0px'});
+  steps.forEach(function(el){ stepReveal.observe(el); stepActive.observe(el); });
+
+  /* hero rotating headline */
+  var lines = [
+    ['Створюємо AI-лендинги,', 'що продають з першого дня'],
+    ['Поєднуємо швидкість AI', 'з дизайном ручної роботи'],
+    ['Тестуємо та поліруємо —', 'запускаємо за дні, не місяці']
+  ];
+  var idx = 0;
+  if(!reduced){
+    setInterval(function(){
+      idx = (idx+1) % lines.length;
+      var heading = document.getElementById('heroHeading');
+      heading.classList.remove('play');
+      setTimeout(function(){
+        heading.querySelector('.line-a span').textContent = lines[idx][0];
+        heading.querySelector('.line-b span').textContent = lines[idx][1];
+        heading.classList.add('play');
+      }, 420);
+    }, 4600);
+  }
+
+  /* counters */
+  /* Figures wind up from zero as the row arrives. The previous curve was
+     ease-out cubic, which is 87% done at the halfway point — for a target
+     like 5 that meant three visible frames and it read as no animation at
+     all. A gentler exponent plus a longer run makes the count legible, and
+     a small stagger walks the eye across the row. */
+  var counters = document.querySelectorAll('[data-count]');
+  var counterObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting) return;
+      var el = entry.target;
+      counterObserver.unobserve(el);
+      var target = parseInt(el.getAttribute('data-count'), 10);
+      if(reduced){ el.textContent = target; return; }
+
+      var order = [].indexOf.call(counters, el);
+      var dur = 1900, start = null;
+      setTimeout(function(){
+        requestAnimationFrame(function step(ts){
+          if(start === null) start = ts;
+          var p = Math.min((ts - start)/dur, 1);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 1.7)));
+          if(p < 1) requestAnimationFrame(step);
+          else el.textContent = target;
+        });
+      }, order * 120);
+    });
+  }, {threshold:.35});
+  counters.forEach(function(el){ el.textContent = '0'; counterObserver.observe(el); });
+
+  /* faq accordion */
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var q = item.querySelector('.faq-q');
+    var a = item.querySelector('.faq-a');
+    q.addEventListener('click', function(){
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(function(other){
+        if(other!==item){ other.classList.remove('open'); other.querySelector('.faq-a').style.maxHeight = null; }
+      });
+      item.classList.toggle('open', !isOpen);
+      a.style.maxHeight = !isOpen ? a.scrollHeight + 'px' : null;
+    });
+  });
+
+  /* picking a plan carries it into the brief, so the button label is honest */
+  document.querySelectorAll('.price-cta').forEach(function(cta){
+    cta.addEventListener('click', function(){
+      var budget = document.getElementById('f-budget');
+      var project = document.getElementById('f-project');
+      if(budget){
+        var want = cta.getAttribute('data-budget');
+        for(var i=0;i<budget.options.length;i++){
+          if(budget.options[i].text === want){ budget.selectedIndex = i; break; }
+        }
+      }
+      if(project && !project.value.trim()){
+        project.value = 'Цікавить пакет «' + cta.getAttribute('data-plan') + '». ';
+      }
+    });
+  });
+
+  /* brief form -> mailto */
+  var form = document.getElementById('briefForm');
+  var success = document.getElementById('briefSuccess');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = form.name.value.trim();
+    var contact = form.contact.value.trim();
+    var project = form.project.value.trim();
+    var budget = form.budget.value;
+    var subject = 'Бриф на AI Landing Page — ' + name;
+    var body2 = "Ім'я: " + name + "\nКонтакт: " + contact + "\nБюджет: " + budget + "\n\nПро проєкт:\n" + project;
+    window.location.href = 'mailto:reg.developers@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body2);
+    form.classList.add('hidden');
+    success.classList.add('show');
+  });
+
+  /* ---- shared helpers for the canvases ---- */
+  function fitCanvas(canvas, ctx){
+    var b = canvas.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(b.width*dpr);
+    canvas.height = Math.round(b.height*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return [b.width, b.height];
+  }
+  function onResize(fn){
+    var t;
+    window.addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(fn, 150); });
+  }
+  function whenNear(el, cb, margin){
+    if(!('IntersectionObserver' in window)) return function(){ return true; };
+    var near = true;
+    new IntersectionObserver(function(e){ near = e[0].isIntersecting; if(cb) cb(near); },
+      {rootMargin: margin || '25% 0px 25% 0px'}).observe(el);
+    return function(){ return near; };
+  }
+
+  /* ============================================================
+     Hero lattice: drifting vertices, meshed into triangles wherever
+     three of them fall inside one radius, with the cursor pushing the
+     field apart and lighting the facets it passes over.
+     ============================================================ */
+  function initHeroLattice(){
+    var canvas = document.getElementById('heroCanvas');
+    var hero = document.getElementById('hero');
+    if(!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+
+    var MAX_DIST = 140, MAX_DIST_SQ = MAX_DIST*MAX_DIST;
+    var MOUSE_R = 200, MOUSE_R_SQ = MOUSE_R*MOUSE_R;
+    var FACET_R = 220, FACET_R_SQ = FACET_R*FACET_R;
+
+    var W=0, H=0, points=[];
+    var mouse = {x:-1000, y:-1000, tx:-1000, ty:-1000};
+
+    var seed = 20260814;
+    function rnd(){ seed = (seed*16807) % 2147483647; return seed/2147483647; }
+
+    function initPoints(){
+      points = [];
+      /* now that the canvas spans the whole hero it needs a bigger budget,
+         but the cap still keeps the triangle search bounded */
+      var count = Math.min(Math.max(Math.floor((W*H)/9500), 45), 150);
+      for(var i=0;i<count;i++){
+        points.push({
+          x: rnd()*W, y: rnd()*H,
+          vx: (rnd()-0.5)*0.8, vy: (rnd()-0.5)*0.8,
+          pulse: rnd()*Math.PI*2,
+          pulseSpeed: 1 + rnd()*1.5
+        });
+      }
+    }
+
+    function resize(){
+      var d = fitCanvas(canvas, ctx);
+      W = d[0]; H = d[1];
+      initPoints();
+    }
+    resize();
+    onResize(function(){ resize(); render(performance.now()); });
+
+    if(!coarse){
+      window.addEventListener('mousemove', function(e){
+        var b = canvas.getBoundingClientRect();
+        var x = e.clientX - b.left, y = e.clientY - b.top;
+        if(x < -60 || y < -60 || x > W+60 || y > H+60){ mouse.tx = -1000; mouse.ty = -1000; }
+        else { mouse.tx = x; mouse.ty = y; }
+      }, {passive:true});
+    }
+
+    var last = 0;
+    function render(now){
+      var dt = last ? Math.min((now-last)/1000, 0.033) : 0.016;
+      last = now;
+
+      mouse.x += (mouse.tx - mouse.x)*0.1;
+      mouse.y += (mouse.ty - mouse.y)*0.1;
+      ctx.clearRect(0,0,W,H);
+
+      var n = points.length, i, j, k, p;
+
+      for(i=0;i<n;i++){
+        p = points[i];
+        p.pulse += dt*p.pulseSpeed;
+        p.x += p.vx*dt*60;
+        p.y += p.vy*dt*60;
+        if(p.x < 0){ p.x = 0; p.vx *= -1; } else if(p.x > W){ p.x = W; p.vx *= -1; }
+        if(p.y < 0){ p.y = 0; p.vy *= -1; } else if(p.y > H){ p.y = H; p.vy *= -1; }
+
+        var mdx = mouse.x - p.x, mdy = mouse.y - p.y;
+        var mdSq = mdx*mdx + mdy*mdy;
+        if(mdSq < MOUSE_R_SQ && mdSq > 1){
+          var md = Math.sqrt(mdSq);
+          var force = (1 - md/MOUSE_R) * 35;
+          p.x -= (mdx/md) * force * dt * 6;
+          p.y -= (mdy/md) * force * dt * 6;
+        }
+      }
+
+      var cell = MAX_DIST;
+      var cols = Math.max(1, Math.ceil(W/cell)), rows = Math.max(1, Math.ceil(H/cell));
+      var grid = new Array(cols*rows);
+      for(i=0;i<grid.length;i++) grid[i] = [];
+      for(i=0;i<n;i++){
+        var c = Math.min(cols-1, Math.max(0, Math.floor(points[i].x/cell)));
+        var r = Math.min(rows-1, Math.max(0, Math.floor(points[i].y/cell)));
+        grid[r*cols + c].push(i);
+      }
+
+      for(var cc=0; cc<cols; cc++){
+        for(var rr=0; rr<rows; rr++){
+          var own = grid[rr*cols + cc];
+          if(!own.length) continue;
+
+          var near = [];
+          for(var nc=Math.max(0,cc-1); nc<=Math.min(cols-1,cc+1); nc++){
+            for(var nr=Math.max(0,rr-1); nr<=Math.min(rows-1,rr+1); nr++){
+              var list = grid[nr*cols + nc];
+              for(k=0;k<list.length;k++) near.push(list[k]);
+            }
+          }
+
+          for(i=0;i<own.length;i++){
+            var i1 = own[i], p1 = points[i1];
+            for(j=0;j<near.length;j++){
+              var i2 = near[j];
+              if(i1 >= i2) continue;
+              var p2 = points[i2];
+              var dx12 = p1.x-p2.x, dy12 = p1.y-p2.y;
+              if(dx12*dx12 + dy12*dy12 > MAX_DIST_SQ) continue;
+
+              for(k=j+1;k<near.length;k++){
+                var i3 = near[k];
+                if(i2 >= i3) continue;
+                var p3 = points[i3];
+                var dx23 = p2.x-p3.x, dy23 = p2.y-p3.y;
+                if(dx23*dx23 + dy23*dy23 > MAX_DIST_SQ) continue;
+                var dx31 = p3.x-p1.x, dy31 = p3.y-p1.y;
+                if(dx31*dx31 + dy31*dy31 > MAX_DIST_SQ) continue;
+
+                var ax = (p1.x+p2.x+p3.x)/3, ay = (p1.y+p2.y+p3.y)/3;
+                var fx = mouse.x-ax, fy = mouse.y-ay;
+                var fSq = fx*fx + fy*fy;
+                var lit = fSq < FACET_R_SQ;
+                var fill = lit ? (1 - Math.sqrt(fSq)/FACET_R) * 0.22 : 0.022;
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.lineTo(p3.x,p3.y);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(' + (lit ? ACCENT_S : INK_S) + ',' + fill.toFixed(3) + ')';
+                ctx.fill();
+                ctx.strokeStyle = lit
+                  ? 'rgba(' + ACCENT_S + ',' + (fill*1.6).toFixed(3) + ')'
+                  : 'rgba(' + INK_S + ',0.07)';
+                ctx.lineWidth = lit ? 0.8 : 0.4;
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      for(i=0;i<n;i++){
+        p = points[i];
+        var vdx = mouse.x-p.x, vdy = mouse.y-p.y;
+        var isNear = (vdx*vdx + vdy*vdy) < FACET_R_SQ;
+        var rad = 1.6 + Math.sin(p.pulse)*0.9;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, isNear ? 3.2 : rad, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(' + (isNear ? ACCENT_S + ',0.9' : INK_S + ',0.38') + ')';
+        ctx.fill();
+
+        if(isNear){
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 6.5 + Math.sin(p.pulse*2)*2.4, 0, Math.PI*2);
+          ctx.strokeStyle = 'rgba(' + ACCENT_S + ',0.3)';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    if(reduced){ render(0); return; }
+    var visible = whenNear(hero, null, '0px');
+    (function frame(ts){ if(visible()) render(ts); requestAnimationFrame(frame); })(performance.now());
+  }
+
+  /* ============================================================
+     Dotted surface: a lattice laid flat in 3D, rippled by two sine
+     waves along its own axes and viewed through a pitched perspective
+     camera, so rows converge toward a horizon and near dots swell.
+     ============================================================ */
+  function initDotField(){
+    var canvas = document.getElementById('dotsCanvas');
+    var section = document.getElementById('service');
+    if(!canvas || !section || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+
+    /* Reference geometry: a level camera looking straight down -Z, so the
+       lattice recedes to a horizon and the copy above it sits on clean
+       ground. Tipped a few degrees so the plane begins just under the
+       intro copy instead of halfway down the block. */
+    var SEPARATION = 150, AMOUNTX = 40, AMOUNTY = 60;
+    var CAM_Y = 355, CAM_Z = 1220, FOV = 60;
+    var PITCH = 0.19, SIN_P = Math.sin(PITCH), COS_P = Math.cos(PITCH);
+    /* the reference's own point size is tuned for a full-window canvas; this
+       is scaled so near dots still clear the glass panels' backdrop blur,
+       where surviving brightness goes as radius squared */
+    var DOT_SIZE = 12, NEAR = 240, MAX_R = 9, GLOW_R = 190, OPACITY = 0.72;
+
+    var W=0, H=0, dots=[], focal=0;
+
+    function build(){
+      dots = [];
+      var ax = AMOUNTX, ay = AMOUNTY;
+      if(W < 700){ ax = 26; ay = 44; }        /* lighter lattice on phones */
+      var seed = 99;
+      function rnd(){ seed = (seed*16807) % 2147483647; return seed/2147483647; }
+      /* x and z never change, so anything that projects outside the frame can
+         be dropped once instead of tested every frame. The margin is the exact
+         reach of the wave at that depth, not a flat guess — a generous fixed
+         margin kept 3× the points and blew the frame budget. */
+      for(var ix=0; ix<ax; ix++){
+        for(var iy=0; iy<ay; iy++){
+          var x = ix*SEPARATION - (ax*SEPARATION)/2;
+          var z = iy*SEPARATION - (ay*SEPARATION)/2;
+          var yc = -CAM_Y, zc0 = CAM_Z - z;
+          var zc = zc0*COS_P - yc*SIN_P;
+          if(zc < NEAR) continue;
+          var k = focal/zc;
+          var sx = W/2 + x*k, sy = H/2 - (yc*COS_P + zc0*SIN_P)*k;
+          var m = 100*k + 40;
+          if(sx < -m || sx > W+m || sy < -m || sy > H+m) continue;
+          dots.push({ ix: ix, iy: iy, x: x, z: z, hot: rnd() < 0.04 });
+        }
+      }
+      dots.sort(function(a,b){ return a.z - b.z; });  /* far rows first */
+    }
+
+    /* Colours are quantised into a handful of buckets and each bucket drawn as
+       one path. Building a fresh rgba() string per dot per frame cost 21ms a
+       frame; this holds it near 3ms. */
+    var BUCKETS = 12, PAL_INK = [], PAL_HOT = [], binsInk = [], binsHot = [];
+    for(var q=0;q<BUCKETS;q++){
+      var av = (q + 0.5)/BUCKETS * OPACITY;
+      PAL_INK.push('rgba(' + INK_S + ',' + av.toFixed(3) + ')');
+      PAL_HOT.push('rgba(' + ACCENT_S + ',' + Math.min(1, av*1.4).toFixed(3) + ')');
+      binsInk.push([]); binsHot.push([]);
+    }
+    function flush(bins, pal){
+      for(var i=0;i<BUCKETS;i++){
+        var L = bins[i];
+        if(!L.length) continue;
+        ctx.fillStyle = pal[i];
+        ctx.beginPath();
+        for(var j=0;j<L.length;j+=3){
+          ctx.moveTo(L[j] + L[j+2], L[j+1]);
+          ctx.arc(L[j], L[j+1], L[j+2], 0, Math.PI*2);
+        }
+        ctx.fill();
+        L.length = 0;
+      }
+    }
+
+    function resize(){
+      var d = fitCanvas(canvas, ctx);
+      W = d[0]; H = d[1];
+      focal = (H/2) / Math.tan(FOV * Math.PI / 360);
+      build();
+    }
+    resize();
+    onResize(function(){ resize(); render(performance.now()); });
+
+    var px=-9999, py=-9999;
+    if(!coarse){
+      window.addEventListener('mousemove', function(e){
+        var b = canvas.getBoundingClientRect();
+        px = e.clientX - b.left; py = e.clientY - b.top;
+      }, {passive:true});
+    }
+
+    function render(t){
+      ctx.clearRect(0,0,W,H);
+      /* the reference steps its counter by 0.1 each frame; tie it to the
+         clock instead so the swell runs at one speed on any refresh rate */
+      var count = t * 0.006;
+      var halfH = H/2;
+
+      for(var k=0;k<dots.length;k++){
+        var d = dots[k];
+
+        var wy = Math.sin((d.ix + count) * 0.3) * 50
+               + Math.sin((d.iy + count) * 0.5) * 50;
+
+        var yc = wy - CAM_Y;
+        var zc0 = CAM_Z - d.z;
+        var zc =  zc0*COS_P - yc*SIN_P;
+        if(zc < NEAR) continue;
+        var ycp = yc*COS_P + zc0*SIN_P;
+
+        var k2 = focal / zc;
+        var x = W/2 + d.x * k2;
+        var y = halfH - ycp * k2;
+        if(x < -30 || x > W+30 || y < -30 || y > H+30) continue;
+
+        var r = Math.min(MAX_R, DOT_SIZE * halfH / zc * 0.5);
+        var fade = 1 - Math.min(0.86, zc/6000 * 0.9);
+
+        /* dots under the cursor need their own alpha, so they skip the
+           buckets and are painted individually — there are never many */
+        var boost = 0;
+        if(px > -9000){
+          var dx = x-px, dy = y-py, dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist < GLOW_R) boost = (1 - dist/GLOW_R) * 0.28;
+        }
+
+        if(boost > 0.004){
+          var a = OPACITY*fade + boost;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(' + (d.hot ? ACCENT_S : INK_S) + ',' + Math.min(1, d.hot ? a*1.4 : a).toFixed(3) + ')';
+          ctx.fill();
+        } else {
+          var q2 = (fade*BUCKETS)|0;
+          if(q2 > BUCKETS-1) q2 = BUCKETS-1; else if(q2 < 0) q2 = 0;
+          (d.hot ? binsHot : binsInk)[q2].push(x, y, r);
+        }
+      }
+
+      flush(binsInk, PAL_INK);
+      flush(binsHot, PAL_HOT);
+    }
+
+    if(reduced){ render(0); return; }
+    var visible = whenNear(section);
+    (function frame(ts){ if(visible()) render(ts); requestAnimationFrame(frame); })(performance.now());
+  }
+
+  /* ============================================================
+     Second screen: a cloud of triangles blown outward by scroll.
+     Progress is read from the section's position in the viewport, so
+     the burst plays forward on the way down and back on the way up.
+     ============================================================ */
+  function initBurstCanvas(){
+    var canvas = document.getElementById('burstCanvas');
+    var section = document.getElementById('burst');
+    if(!canvas || !section || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+
+    var PAL = [ INK, ACCENT, [214,32,74], [156,20,52], [104,14,38], [64,10,26] ];
+    function rgba(c,a){ return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+
+    var seed = 1337;
+    function rnd(){ seed = (seed*16807) % 2147483647; return seed/2147483647; }
+
+    var tris = [], streaks = [], i, a, el, r;
+    for(i=0;i<210;i++){
+      a  = rnd()*Math.PI*2;
+      el = (rnd()-0.5)*1.15;
+      r  = Math.pow(rnd(), 0.55);
+      var ci = rnd();
+      tris.push({
+        dx: Math.cos(a)*Math.cos(el),
+        dy: Math.sin(el),
+        dz: Math.sin(a)*Math.cos(el),
+        sp: (0.30 + rnd()*1.05) * r,
+        size: 5 + Math.pow(rnd(),2)*36,
+        rot: rnd()*Math.PI*2,
+        rs: (rnd()-0.5)*0.0022,
+        ph: rnd()*Math.PI*2,
+        col: PAL[ ci<0.10 ? 0 : ci<0.34 ? 1 : ci<0.56 ? 2 : ci<0.74 ? 3 : ci<0.89 ? 4 : 5 ],
+        wire: rnd() < 0.16
+      });
+    }
+    for(i=0;i<9;i++){
+      streaks.push({ dx:(rnd()-0.5)*2, dy:(rnd()-0.5)*1.2,
+        len: 40 + rnd()*130, sp: 0.5 + rnd()*0.8, a: -0.5 - rnd()*0.35 });
+    }
+
+    var W=0, H=0;
+    function resize(){ var d = fitCanvas(canvas, ctx); W = d[0]; H = d[1]; }
+    resize();
+    onResize(function(){ resize(); render(performance.now()); });
+
+    var tmx=0, tmy=0, cmx=0, cmy=0;
+    if(!coarse){
+      window.addEventListener('mousemove', function(e){
+        tmx = (e.clientX / window.innerWidth  - 0.5) * 2;
+        tmy = (e.clientY / window.innerHeight - 0.5) * 2;
+      }, {passive:true});
+    }
+
+    /* the span runs across the section's whole travel, so the cloud starts
+       tight when the block appears and keeps opening as it scrolls past */
+    function progress(){
+      var b = section.getBoundingClientRect();
+      var vh = window.innerHeight;
+      var p = (vh - b.top) / (vh + b.height);
+      return p < 0 ? 0 : p > 1 ? 1 : p;
+    }
+    function easeOut(x){ return 1 - Math.pow(1-x, 3); }
+
+    function render(t){
+      ctx.clearRect(0,0,W,H);
+      var p = easeOut(progress());
+      var cx = W/2, cy = H/2;
+      var spread = Math.min(W,H) * 1.45;
+      var fade = p < 0.08 ? p/0.08 : 1;
+      var k, tr, x, y, dep, s, alpha, drift;
+
+      for(k=0;k<streaks.length;k++){
+        var st = streaks[k];
+        x = cx + st.dx*p*spread*st.sp;
+        y = cy + st.dy*p*spread*st.sp;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(st.a)*st.len, y + Math.sin(st.a)*st.len);
+        ctx.strokeStyle = rgba(PAL[0], 0.10*fade);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      for(k=0;k<tris.length;k++){
+        tr = tris[k];
+        dep = 1 + tr.dz * p * 0.55;
+        drift = t*0.00035 + tr.ph;
+        x = cx + tr.dx*p*spread*tr.sp + Math.sin(drift)*7 + cmx*26*tr.sp;
+        y = cy + tr.dy*p*spread*tr.sp*0.82 + Math.cos(drift)*7 + cmy*18*tr.sp;
+        s = tr.size * dep;
+        alpha = fade * (0.35 + 0.65*Math.min(1, dep));
+        if(alpha <= 0.01) continue;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(tr.rot + t*tr.rs);
+        ctx.beginPath();
+        ctx.moveTo(0, -s*0.58);
+        ctx.lineTo(s*0.52, s*0.42);
+        ctx.lineTo(-s*0.52, s*0.42);
+        ctx.closePath();
+        if(tr.wire){
+          ctx.strokeStyle = rgba(tr.col, alpha*0.8);
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = rgba(tr.col, alpha);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    if(reduced){
+      render(0);
+      document.addEventListener('scroll', function(){ render(0); }, {passive:true});
+      return;
+    }
+    var visible = whenNear(section, null, '40% 0px 40% 0px');
+    (function frame(ts){
+      if(visible()){
+        cmx += (tmx-cmx)*0.05;
+        cmy += (tmy-cmy)*0.05;
+        render(ts);
+      }
+      requestAnimationFrame(frame);
+    })(performance.now());
+  }
+
+  /* ============================================================
+     The quote's triangle winds with the page: scrolling down turns it
+     clockwise, scrolling up unwinds it. Angle accumulates from scroll
+     delta and is eased toward, so flicks read as momentum, not jumps.
+     ============================================================ */
+  function initQuoteMark(){
+    var svg = document.querySelector('.quote-mark svg');
+    var sec = document.querySelector('.quote-section');
+    if(!svg || !sec) return;
+
+    var DEG_PER_PX = 0.32;
+    var angle = 0, target = 0, lastY = window.scrollY || 0;
+
+    if(reduced){ svg.style.transform = 'rotate(-8deg)'; return; }
+
+    window.addEventListener('scroll', function(){
+      var y = window.scrollY || 0;
+      target += (y - lastY) * DEG_PER_PX;
+      lastY = y;
+    }, {passive:true});
+
+    var near = true;
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(e){ near = e[0].isIntersecting; },
+        {rootMargin:'35% 0px 35% 0px'}).observe(sec);
+    }
+
+    (function frame(){
+      if(near){
+        var d = target - angle;
+        if(d > 0.01 || d < -0.01){
+          angle += d * 0.075;
+          svg.style.transform = 'rotate(' + angle.toFixed(2) + 'deg)';
+        }
+      }
+      requestAnimationFrame(frame);
+    })();
+  }
+
+  initHeroLattice();
+  initDotField();
+  initBurstCanvas();
+  initQuoteMark();
+})();
+</script>
